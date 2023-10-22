@@ -1,13 +1,28 @@
-// FUNCTION DEFINITION
+// FUNCTION DEFINITION (OUTSIDE MAIN FUNCTION)
 def my_func ()
     print 4;
-fed; 
+    return 15;
+
+// FUNCTIONS WITH SAME ARG NAMES
+def func_with_args (arg1, arg2)
+    print arg1 + arg2;
+    return arg2;
+
+def func3 (arg3, arg4, arg5)
+    return 3;
 
 // STARTING POINT FOR PROGRAM
 def main ()
+    print func3 (arg3 = 1, arg4 = 2, arg5 = 3);
 
-    // FUNCTION CALL
+    // FUNCTION WITH ARGS
+    print func_with_args (arg1 = 1, arg2 = 1);
+
+    // FUNCTION CALL (multiple times, assign to a variable)
+    print my_func();
     my_func();
+    let abc = my_func();
+    print abc;
 
     // AND, OR, NOT
     print  !True; //0
@@ -58,15 +73,6 @@ def main ()
     // ARRAY DEFINITION
     let mylist [5];
 
-    // VARIABLE DEFINITION
-    let y;
-    // VARIABLE ASSIGNMENT
-    y=20;
-    print y;
-    // VARIABLE DEFINITION AND ASSIGNMENT
-    let z = 111;
-    print z;
-
     // WHILE DO 
     let x = 10;
     while (x)   
@@ -84,11 +90,6 @@ def main ()
             print 0;
     endif;
 
-    // ASK USER FOR AN INPUT
-    let user_input = input;
-    print user_input;
-
-
     /*
 
     This 
@@ -100,20 +101,28 @@ def main ()
 
     */
 
-    // VARIABLE DEFINITION AND ASSIGNMENT
-    let adrian_ramirez_ = 25;
-
-    // VARIABLE ASSIGNMENT
-    adrian_ramirez_ = 30;
-    print adrian_ramirez_;
+    // ASK USER FOR AN INPUT
+    let user_input = input();
+    print user_input;
 
     // OPERATIONS WITH VARIABLES
-    print adrian_ramirez_ - 30;
+    let adrian  = 25;
+    print adrian - 20;
+
+    // VARIABLE DEFINITION
+    let y;
+    // VARIABLE ASSIGNMENT
+    y=20;
+    print y;
+
+    // VARIABLE DEFINITION AND ASSIGNMENT
+    let mines = 25;
+    print mines;
 
     // PARENTHESES
     print 1-((5+2)+2-3);
 
-    // BASIC OPERATIONS
+    // ARITHMETIC OPERATIONS
     print 3*2;
     print 11/3;
     print 1-5+2;
@@ -121,4 +130,6 @@ def main ()
     print 3;
     ;
     print 42;
-fed;
+
+    exit(5);
+    return 0;

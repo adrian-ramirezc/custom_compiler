@@ -63,7 +63,9 @@ import PascaLex
   endwhile {TK _ ENDWHILE}
 
   def {TK _ DEF}
-  fed {TK _ FED}
+  return {TK _ RETURN}
+  
+  exit {TK _ EXIT}
 
 %left '+' '-'
 %left '*' '/'
@@ -81,28 +83,31 @@ Linst : Inst {$1}
         | Linst Inst {$1 ++ $2}
 
 Inst :  ';' { "" } 
-        |'SLC' {""}
-        |'MLC' {""}
-        |Print ';' {$1}
-        |Expr ';' {$1 ++ "\tLOAD\n"}
-        |Def_scalaire ';' {$1}
-        |Assign_scalaire ';' {$1}
-        |Def_Assign_scalaire ';' {$1}
-        |Def_array ';' {$1}
-        |If ';' {$1}
-        |While ';' {$1}
-        |Ldef_scalaire ';' {$1}
-        |FuncDef ';' {$1}
-        |FuncCall ';' {$1}
+        | 'SLC' {""}
+        | 'MLC' {""}
+        | Expr ';' {$1}
+        | Print ';' {$1}
+        | Def_scalaire ';' {$1}
+        | Assign_scalaire ';' {$1}
+        | Def_Assign_scalaire ';' {$1}
+        | Def_array ';' {$1}
+        | If ';' {$1}
+        | While ';' {$1}
+        | Ldef_scalaire ';' {$1}
+        | FuncDef ';' {$1}
+        | Exit ';' {$1}
+
+Exit : exit '(' Expr ')' {$3 ++ "\tSTOP\n"}
 
 Print : print Expr {";/ print...\n" ++ $2 ++ "\tOUT\n"}
-        | print FuncCall {";/ print...\n" ++ $2 ++ "\tOUT\n"}
 
 Expr :  ExprNum {$1}
         | ExprBool {$1}
+        | FuncCall {$1}
         | var {"\tPUSH\t" ++ $1 ++ "\n\tLOAD\n"}  
         | '(' Expr ')'  {$2}      
-        | input {"\tIN\n"}
+        | input'('')' {"\tIN\n"}
+
 
 ExprNum: integer {"\tPUSH\t" ++ (show $1) ++ "\n"}
         | Expr '+' Expr {% add $1 $3} 
@@ -138,8 +143,18 @@ If: if Expr then Linst else Linst endif {% cond_bez $2 $4 $6}
 
 While: while Expr do Linst endwhile {% while_do $2 $4}
 
-FuncDef: def var '('')' Linst fed {% func_def $2 $5} 
-FuncCall: var'('')' {% func_call $1 }
+LFuncArgs :      {[]} 
+                | var {[$1]} 
+                | LFuncArgs ',' var {$3 : $1}
+FuncBody :      {""} 
+                | Linst {$1}
+FuncDef: def var '(' LFuncArgs ')' FuncBody return Expr {% func_def $2 $4 $6 $8} 
+
+FuncPar : var '=' Expr {[$1, $3]}
+LFuncPars :     {[]}
+                | FuncPar {[$1]}
+                | LFuncPars ',' FuncPar {$3 : $1}
+FuncCall: var '(' LFuncPars ')' {% func_call $1 $3 }
 
 
 {
@@ -222,19 +237,36 @@ not_ op1 = do
         s0 <- cond_bgz op1 "\tPUSH\t0\n" "\tPUSH\t1\n"
         return s0
 
-func_def :: String -> String -> ParseResult String
-func_def func_name func_body = do
-        return (func_name ++ "\tEQU\t*\n" 
+func_def :: String -> [String] -> String -> String -> ParseResult String
+func_def func_name func_args func_body func_return_value = do
+        let func_return_name = func_name ++ "_value"
+        let func_args_defined = concat (map (\x -> x ++ "\tDS\t1\n") func_args)
+        return (func_return_name ++ "\tDS\t1\n"
+                ++ func_args_defined
+                ++ func_name ++ "\tEQU\t*\n" 
                 ++ func_body
+                ++ "\tPUSH\t" ++ func_return_name ++ "\n" ++ func_return_value ++ "\tSTORE\n"
                 ++ "\tGOTO\n")
 
-func_call :: String -> ParseResult String
-func_call func_name = do
-        let return_label = func_name ++ "_return"
-        return ("\tPUSH\t" ++ return_label ++ "\n"
-                ++ "\tPUSH\t" ++ func_name ++ "\n"
-                ++ "\tGOTO\n"
-                ++ return_label ++ "\tEQU\t*\n")
+func_call :: String -> [[String]]-> ParseResult String
+func_call func_name func_pars= do
+        s <- get
+        let return_label = func_name ++ show (counter s) ++ "_return"
+        let s' = incrCounter s
+        put s'
+        let func_return_name = func_name ++ "_value"
+
+        let common_response = "\tPUSH\t" ++ return_label ++ "\n"
+                        ++ "\tPUSH\t" ++ func_name ++ "\n"
+                        ++ "\tGOTO\n"
+                        ++ return_label ++ "\tEQU\t*\n"
+                        ++ "\tPUSH\t" ++ func_return_name ++ "\n\tLOAD\n"
+        if null func_pars
+                then do
+                        return (common_response)
+                else do 
+                        let func_pars_assigned = concat (map (\x -> "\tPUSH\t" ++ x !! 0 ++ "\n" ++ x !! 1 ++ "\tSTORE\n") func_pars)       
+                        return (func_pars_assigned ++ common_response)
         
 
 cond_bez :: String -> String -> String -> ParseResult String

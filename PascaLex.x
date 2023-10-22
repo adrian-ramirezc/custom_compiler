@@ -45,7 +45,9 @@ tokens :-
   <0> endwhile {\p _ -> TK p ENDWHILE}
 
   <0> def {\p _ -> TK p DEF}
-  <0> fed {\p _ -> TK p FED}  
+  <0> return {\p _ -> TK p RETURN} 
+
+  <0> exit {\p _ -> TK p EXIT} 
 
   -- boolean constants
   <0> True {\p _ -> TK p TRUE}
@@ -86,7 +88,8 @@ data TokenName
   | LESS | LESS_EQU
   | EQU | DIFF
   | AND | OR | NOT
-  | DEF | FED
+  | DEF | RETURN
+  | EXIT
   deriving (Eq,Show)
 
 data Token = TK AlexPosn TokenName deriving (Eq,Show)
