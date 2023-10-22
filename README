@@ -1,2 +1,8 @@
+# Objective
+Create a small compiler for custom programming language (custom syntax), using jflex and cup, for a mini machine.
+
+# Compilation
 sh> make compile
+
+# Test
 sh> make test_00.ex
